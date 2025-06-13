@@ -39,13 +39,21 @@ export const WeatherCard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchWeather()
-      .then(res => {
-        if (res.success) {
-          setWeatherData(res.weather);
-        }
-      })
-      .finally(() => setLoading(false));
+    let isMounted = true;
+    const getWeather = async () => {
+      const res = await fetchWeather();
+      if (isMounted && res.success) {
+        setWeatherData(res.weather);
+      }
+    };
+    getWeather();
+    setLoading(false);
+    // Poll every 10 seconds
+    const interval = setInterval(getWeather, 10000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   const activeWeather = weatherData.filter(w => w.active);

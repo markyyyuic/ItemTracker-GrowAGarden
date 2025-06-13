@@ -46,15 +46,44 @@ export const StockTable = () => {
   const [restockTimes, setRestockTimes] = useState<RestockTimes | null>(null);
   const [now, setNow] = useState(Date.now());
 
+  // Helper to fetch both stock and restock times
+  const fetchAll = async () => {
+    const [stockData, restockData] = await Promise.all([
+      fetchStock(),
+      fetchRestockTime(),
+    ]);
+    setStock(stockData);
+    setRestockTimes(restockData);
+  };
+
   useEffect(() => {
-    fetchStock().then(data => setStock(data));
-    fetchRestockTime().then(data => setRestockTimes(data));
+    fetchAll();
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(interval);
-  }, []);
+    const nowInterval = setInterval(() => setNow(Date.now()), 1000);
+    let pollInterval: NodeJS.Timeout;
+
+    // Poll every 10 seconds
+    const startPolling = () => {
+      pollInterval = setInterval(async () => {
+        if (!restockTimes) return;
+        // Check if any timer is up
+        const anyRestocked = Object.values(restockTimes).some(
+          t => t.timestamp - Date.now() <= 0
+        );
+        if (anyRestocked) {
+          await fetchAll();
+        }
+      }, 10000);
+    };
+    startPolling();
+    return () => {
+      clearInterval(nowInterval);
+      clearInterval(pollInterval);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restockTimes]);
 
   const getCountdown = (timestamp?: number) => {
     if (!timestamp) return "--:--:--";
