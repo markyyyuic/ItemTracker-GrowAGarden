@@ -1,46 +1,92 @@
-# Getting Started with Create React App
+# Grow a Garden Tracker
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A real-time web dashboard for tracking Grow a Garden (Roblox) item stocks, weather events, and restock timers.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- **Live Stock Tracking:**
+  - View current stock for Fruits & Seeds, Eggs, Garden Gear, Bee Event items, and Cosmetics.
+  - Auto-refreshes when any category restocks (no manual page refresh needed).
+- **Weather Event Monitoring:**
+  - See all active weather events that affect garden growth and item spawns.
+  - Weather data auto-refreshes every 10 seconds.
+- **Restock Timers:**
+  - Each category displays a live countdown to the next restock.
+  - Timers update every second for accuracy.
+- **Modern UI:**
+  - Responsive, mobile-friendly design using Tailwind CSS.
+  - Custom icons and subtle animations for a playful, game-inspired look.
+- **Play Now Button:**
+  - Quick access to the Grow a Garden Roblox game.
+- **Not Affiliated:**
+  - This is a fan-made tool and is not affiliated with Roblox or the Grow a Garden game.
 
-### `npm start`
+## Tech Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- **React** (with functional components and hooks)
+- **TypeScript**
+- **Tailwind CSS** for styling
+- **react-icons** for iconography
+- **Vite** or Create React App (depending on your setup)
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## How It Works
 
-### `npm test`
+- Fetches live data from the [Grow a Garden API](https://growagardenapi.vercel.app/api).
+- Polls the API for stock and weather updates at regular intervals.
+- Updates the UI in real time as soon as restocks or weather changes occur.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Project Structure
 
-### `npm run build`
+```
+Grow-A-Garden-ItemTracker/
+├── public/
+├── src/
+│   ├── components/
+│   │   ├── Header.tsx
+│   │   ├── Footer.tsx
+│   │   ├── StockTable.tsx
+│   │   └── WeatherCard.tsx
+│   ├── pages/
+│   │   └── Dashboard.tsx
+│   ├── services/
+│   │   └── services.ts
+│   ├── App.tsx
+│   └── index.tsx
+├── package.json
+├── tailwind.config.js
+└── tsconfig.json
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Setup & Development
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. **Install dependencies:**
+   ```sh
+   npm install
+   ```
+2. **Start the development server:**
+   ```sh
+   npm start
+   ```
+3. **Build for production:**
+   ```sh
+   npm run build
+   ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## API Endpoints Used
+- `/api/stock/GetStock` — Get current stock for all categories
+- `/api/stock/Restock-Time` — Get restock timers for each category
+- `/api/GetWeather` — Get current weather events
+- `/api/Item-Info` — (optional, for future expansion)
 
-### `npm run eject`
+## Customization
+- You can easily add new categories or weather types by updating the mappings in `StockTable.tsx` and `WeatherCard.tsx`.
+- Styling and icons can be customized via Tailwind and `react-icons`.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## Credits
+- UI/UX, code, and concept by TONYYYY
+- Icons from [react-icons](https://react-icons.github.io/react-icons/)
+- Data from the Grow a Garden API (unofficial)
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+---
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+> **Disclaimer:** This project is not affiliated with Roblox or the Grow a Garden game. For entertainment and educational purposes only.

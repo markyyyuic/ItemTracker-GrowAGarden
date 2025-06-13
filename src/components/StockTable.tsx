@@ -62,19 +62,37 @@ export const StockTable = () => {
   useEffect(() => {
     const nowInterval = setInterval(() => setNow(Date.now()), 1000);
     let pollInterval: NodeJS.Timeout;
+    let retryCount = 0;
 
     const startPolling = () => {
       pollInterval = setInterval(async () => {
         if (!restockTimes) return;
-
         const anyRestocked = Object.values(restockTimes).some(
           t => t.timestamp - Date.now() <= 0
         );
 
         if (anyRestocked) {
-          await fetchAll();
+          const previousStock = stock;
+          const [stockData, restockData] = await Promise.all([
+            fetchStock(),
+            fetchRestockTime(),
+          ]);
+          setStock(stockData);
+          setRestockTimes(restockData);
+
+          const isSame =
+            JSON.stringify(previousStock) === JSON.stringify(stockData);
+          if (isSame && retryCount < 3) {
+            retryCount++;
+            clearInterval(pollInterval);
+            pollInterval = setInterval(startPolling, 3000); // faster retry
+          } else {
+            retryCount = 0;
+            clearInterval(pollInterval);
+            pollInterval = setInterval(startPolling, 10000); // back to normal
+          }
         }
-      }, 10000); // every 10 seconds
+      }, 10000); // Default interval
     };
 
     startPolling();
