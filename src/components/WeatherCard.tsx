@@ -44,9 +44,16 @@ export const WeatherCard = () => {
     let isMounted = true;
 
     const getWeather = async () => {
-      const res = await fetchWeather();
-      if (isMounted && res.success) {
-        setWeatherData(res.weather);
+      try {
+        const res = await fetchWeather();
+        if (isMounted) {
+          const data = Array.isArray(res.weather) ? res.weather : res.weatherEvents || []; // FIX HERE
+          setWeatherData(data);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("Failed to fetch weather:", err);
+        setWeatherData([]);
         setLoading(false);
       }
     };

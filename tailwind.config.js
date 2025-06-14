@@ -10,7 +10,7 @@ module.exports = {
         thunderstorm: "url('/public/images/thunderstorm.gif')",
         night: "url('/public/images/night.gif')",
         bloodmoon: "url('/public/images/bloodmoon.gif')",
-        beeswarm: "url('/public/images/beeswarm.gif')",
+        beeswarm: "url('/public/images/beeevent.gif')",
         default: "url('/public/images/sunny.gif')", 
       },
       animation: {

@@ -37,17 +37,20 @@ const PlayGameButton = () => (
 );
 
 function App() {
-  const [activeWeather, setActiveWeather] = useState<string | null>(null);
+  const [activeWeather, setActiveWeather] = useState<string>("Sunny");
 
   useEffect(() => {
     const fetchActiveWeather = async () => {
       try {
-        const weatherData: WeatherEvent[] = await fetchWeather();
+        const response = await fetchWeather();
+        const weatherData: WeatherEvent[] = Array.isArray(response.weather)
+          ? response.weather
+          : [];
         const active = weatherData.find((w) => w.active);
         setActiveWeather(active?.weather_name || "Sunny");
       } catch (error) {
         console.error("Failed to fetch weather", error);
-        setActiveWeather("Sunny"); // fallback
+        setActiveWeather("Sunny");
       }
     };
 
@@ -56,7 +59,7 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  const bgClass = weatherBackgroundMap[activeWeather ?? ""] ?? "bg-sunny";
+  const bgClass = weatherBackgroundMap[activeWeather] ?? "bg-sunny";
 
   return (
     <div className={`relative min-h-screen w-full ${bgClass} bg-cover bg-center transition-all duration-500`}>
