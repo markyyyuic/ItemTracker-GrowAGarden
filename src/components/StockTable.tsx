@@ -61,15 +61,26 @@ export const StockTable = () => {
 
   useEffect(() => {
     const nowInterval = setInterval(() => setNow(Date.now()), 1000);
-    // Poll both stock and restock times every 3 seconds
+    let lastStock: StockData | null = null;
+    let lastRestock: RestockTimes | null = null;
+    // Poll both stock and restock times every 1 second for near-instant updates
     const pollInterval = setInterval(async () => {
       const [newStock, newRestock] = await Promise.all([
         fetchStock(),
         fetchRestockTime(),
       ]);
-      setStock(newStock);
-      setRestockTimes(newRestock);
-    }, 3000);
+      // Only update state if data has changed to avoid unnecessary re-renders
+      if (JSON.stringify(newStock) !== JSON.stringify(lastStock)) {
+        setStock(newStock);
+        lastStock = newStock;
+        console.log("Stock updated at", new Date().toLocaleTimeString());
+      }
+      if (JSON.stringify(newRestock) !== JSON.stringify(lastRestock)) {
+        setRestockTimes(newRestock);
+        lastRestock = newRestock;
+        console.log("Restock times updated at", new Date().toLocaleTimeString());
+      }
+    }, 1000);
     return () => {
       clearInterval(nowInterval);
       clearInterval(pollInterval);
