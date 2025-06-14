@@ -86,7 +86,7 @@ useEffect(() => {
     } catch (error) {
       console.error("Polling error:", error);
     }
-  }, 5000);
+  }, 8000);
 
   return () => {
     clearInterval(nowInterval);

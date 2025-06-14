@@ -17,7 +17,6 @@ const weatherIconMap: Record<string, keyof typeof WiIcons | string> = {
   Cloudy: "WiCloudy",
   Thunderstorm: "WiThunderstorm",
   Snow: "WiSnow",
-  Frost: "WiSnowflakeCold",
   Night: "WiNightClear",
   Bloodmoon: "🌕",
   "Meteor Shower": "🌠",
@@ -27,7 +26,6 @@ const weatherIconMap: Record<string, keyof typeof WiIcons | string> = {
 const weatherAnimationMap: Record<string, string> = {
   Sunny: "animate-float",
   Rain: "animate-bounce-soft",
-  Cloudy: "animate-float",
   Thunderstorm: "animate-flash",
   Snow: "animate-float",
   Frost: "animate-float",

@@ -1,10 +1,18 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    "./src/**/*.{js,jsx,ts,tsx}",
-  ],
+  content: ["./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      backgroundImage: {
+        sunny: "url('/public/images/sunny.gif')",
+        rain: "url('/public/images/rain.gif')",
+        snow: "url('/public/images/snow.gif')",
+        thunderstorm: "url('/public/images/thunderstorm.gif')",
+        night: "url('/public/images/night.gif')",
+        bloodmoon: "url('/public/images/bloodmoon.gif')",
+        beeswarm: "url('/public/images/beeswarm.gif')",
+        default: "url('/public/images/sunny.gif')", 
+      },
       animation: {
         'spin-slow': 'spin 5s linear infinite',
         'wiggle': 'wiggle 1s ease-in-out infinite',
@@ -33,4 +41,4 @@ module.exports = {
     },
   },
   plugins: [],
-}
+};
