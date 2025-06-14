@@ -5,7 +5,7 @@ import {
   GiEggClutch,
   GiGardeningShears,
   GiHoneycomb,
-  GiLipstick
+  GiLipstick,
 } from "react-icons/gi";
 import React, { ComponentType } from "react";
 
@@ -61,38 +61,43 @@ export const StockTable = () => {
 
   useEffect(() => {
     const nowInterval = setInterval(() => setNow(Date.now()), 1000);
+
     let pollInterval: NodeJS.Timeout;
     let retryCount = 0;
+    const maxRetries = 10;
+
+    const pollStockAfterRestock = async () => {
+      const [newStock, newRestock] = await Promise.all([
+        fetchStock(),
+        fetchRestockTime(),
+      ]);
+
+      const isSame = JSON.stringify(stock) === JSON.stringify(newStock);
+
+      setRestockTimes(newRestock);
+
+      if (!isSame || retryCount >= maxRetries) {
+        setStock(newStock);
+        retryCount = 0;
+      } else {
+        retryCount++;
+        setTimeout(pollStockAfterRestock, 1000); // Try again in 1s (faster)
+      }
+    };
 
     const startPolling = () => {
-      pollInterval = setInterval(async () => {
+      pollInterval = setInterval(() => {
         if (!restockTimes) return;
-        const anyRestocked = Object.values(restockTimes).some(
-          t => t.timestamp - Date.now() <= 0
+
+        const restockDue = Object.values(restockTimes).some(
+          (r) => r.timestamp - Date.now() <= 0
         );
 
-        if (anyRestocked) {
-          const previousStock = stock;
-          const [stockData, restockData] = await Promise.all([
-            fetchStock(),
-            fetchRestockTime(),
-          ]);
-          setStock(stockData);
-          setRestockTimes(restockData);
-
-          const isSame =
-            JSON.stringify(previousStock) === JSON.stringify(stockData);
-          if (isSame && retryCount < 3) {
-            retryCount++;
-            clearInterval(pollInterval);
-            pollInterval = setInterval(startPolling, 3000); // faster retry
-          } else {
-            retryCount = 0;
-            clearInterval(pollInterval);
-            pollInterval = setInterval(startPolling, 10000); // back to normal
-          }
+        if (restockDue) {
+          clearInterval(pollInterval);
+          pollStockAfterRestock(); // Start retrying for updated stock
         }
-      }, 10000); // Default interval
+      }, 1000);
     };
 
     startPolling();
@@ -101,7 +106,7 @@ export const StockTable = () => {
       clearInterval(nowInterval);
       clearInterval(pollInterval);
     };
-  }, [restockTimes]);
+  }, [restockTimes, stock]); // <- include stock to fix eslint warning
 
   const getCountdown = (timestamp?: number) => {
     if (!timestamp) return "--:--:--";
@@ -133,7 +138,7 @@ export const StockTable = () => {
 
   return (
     <div className="flex flex-wrap gap-4 mt-4 w-full justify-center">
-      {categories.map(cat => {
+      {categories.map((cat) => {
         const items = (stock as any)[cat.key] as StockCategory[];
         const restock = restockTimes[cat.restockKey];
         const Icon = categoryIconMap[cat.key];
@@ -155,7 +160,9 @@ export const StockTable = () => {
             </div>
             <div className="flex flex-col gap-3 w-full">
               {items.length === 0 ? (
-                <p className="italic text-gray-400">No items in stock. Check back soon!</p>
+                <p className="italic text-gray-400">
+                  No items in stock. Check back soon!
+                </p>
               ) : (
                 items.map((item, idx) => (
                   <div
@@ -164,9 +171,13 @@ export const StockTable = () => {
                   >
                     <div className="flex items-center gap-3">
                       <ItemImageOrEmoji item={item} />
-                      <span className="font-medium text-gray-800">{item.name}</span>
+                      <span className="font-medium text-gray-800">
+                        {item.name}
+                      </span>
                     </div>
-                    <span className="text-green-700 font-semibold">Stock: {item.value}</span>
+                    <span className="text-green-700 font-semibold">
+                      Stock: {item.value}
+                    </span>
                   </div>
                 ))
               )}
@@ -190,5 +201,9 @@ const ItemImageOrEmoji = ({ item }: { item: StockCategory }) => {
       />
     );
   }
-  return item.emoji ? <span className="text-3xl">{item.emoji}</span> : <span className="text-2xl">🌱</span>;
+  return item.emoji ? (
+    <span className="text-3xl">{item.emoji}</span>
+  ) : (
+    <span className="text-2xl">🌱</span>
+  );
 };
