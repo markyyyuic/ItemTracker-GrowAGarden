@@ -61,52 +61,20 @@ export const StockTable = () => {
 
   useEffect(() => {
     const nowInterval = setInterval(() => setNow(Date.now()), 1000);
-
-    let pollInterval: NodeJS.Timeout;
-    let retryCount = 0;
-    const maxRetries = 10;
-
-    const pollStockAfterRestock = async () => {
+    // Poll both stock and restock times every 3 seconds
+    const pollInterval = setInterval(async () => {
       const [newStock, newRestock] = await Promise.all([
         fetchStock(),
         fetchRestockTime(),
       ]);
-
-      const isSame = JSON.stringify(stock) === JSON.stringify(newStock);
-
+      setStock(newStock);
       setRestockTimes(newRestock);
-
-      if (!isSame || retryCount >= maxRetries) {
-        setStock(newStock);
-        retryCount = 0;
-      } else {
-        retryCount++;
-        setTimeout(pollStockAfterRestock, 1000); // Try again in 1s (faster)
-      }
-    };
-
-    const startPolling = () => {
-      pollInterval = setInterval(() => {
-        if (!restockTimes) return;
-
-        const restockDue = Object.values(restockTimes).some(
-          (r) => r.timestamp - Date.now() <= 0
-        );
-
-        if (restockDue) {
-          clearInterval(pollInterval);
-          pollStockAfterRestock(); // Start retrying for updated stock
-        }
-      }, 1000);
-    };
-
-    startPolling();
-
+    }, 3000);
     return () => {
       clearInterval(nowInterval);
       clearInterval(pollInterval);
     };
-  }, [restockTimes, stock]); // <- include stock to fix eslint warning
+  }, []);
 
   const getCountdown = (timestamp?: number) => {
     if (!timestamp) return "--:--:--";
