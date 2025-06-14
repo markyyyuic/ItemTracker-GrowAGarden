@@ -11,17 +11,18 @@ interface WeatherEvent {
   end_duration_unix: number;
 }
 
+// Updated: Only valid WiIcons or emoji
 const weatherIconMap: Record<string, keyof typeof WiIcons | string> = {
   Sunny: "WiDaySunny",
-  Rain: "☔",
+  Rain: "WiRain",
   Cloudy: "WiCloudy",
-  Thunderstorm: "⚡",
-  Snow: "❄️",
-  Frost: "❄️",
-  Night: "🌙",
-  Bloodmoon: "🌕",
-  "Meteor Shower": "WiStars",
-  Bee: "🐝",
+  Thunderstorm: "WiThunderstorm",
+  Snow: "WiSnow",
+  Frost: "WiSnowflakeCold",
+  Night: "WiNightClear",
+  Bloodmoon: "🌕", // emoji fallback
+  "Meteor Shower": "🌠", // emoji fallback
+  BeeSwarm: "🐝", // emoji fallback
 };
 
 const weatherAnimationMap: Record<string, string> = {
@@ -34,7 +35,7 @@ const weatherAnimationMap: Record<string, string> = {
   Night: "animate-float",
   Bloodmoon: "animate-wiggle",
   "Meteor Shower": "animate-flash",
-  Bee: "animate-bounce-soft",
+  BeeSwarm: "animate-bounce-soft",
 };
 
 export const WeatherCard = () => {
@@ -91,6 +92,10 @@ export const WeatherCard = () => {
             const animationClass = weatherAnimationMap[event.weather_name] || "";
 
             const durationLeft = Math.max(0, Math.floor(event.end_duration_unix - now / 1000));
+
+            if (!IconComponent && !inlineEmoji) {
+              console.warn(`Missing icon for weather: ${event.weather_name}`);
+            }
 
             return (
               <li key={event.weather_id} className="flex items-center gap-2">
