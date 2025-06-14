@@ -15,7 +15,7 @@ export const Footer = () => {
           Not affiliated with Roblox or Grow a Garden
         </span>
         <span className="text-[10px] text-green-600 font-mono">
-          v1.1.1
+          v1.1.2
         </span>
       </p>
     </footer>
