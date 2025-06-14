@@ -11,16 +11,19 @@ interface WeatherEvent {
   end_duration_unix: number;
 }
 
-// Map weather names to icon component names
-const weatherIconMap: Record<string, keyof typeof WiIcons> = {
+const weatherIconMap: Record<string, keyof typeof WiIcons | string> = {
   Sunny: "WiDaySunny",
-  Rain: "WiRain",
+  Rain: "☔",
   Cloudy: "WiCloudy",
-  Thunderstorm: "WiThunderstorm",
-  Snow: "WiSnow",
+  Thunderstorm: "⚡",
+  Snow: "❄️",
+  Frost: "❄️",
+  Night: "🌙",
+  Bloodmoon: "🌕",
+  "Meteor Shower": "WiStars",
+  Bee: "🐝",
 };
 
-// Optional: Map animations per weather type
 const weatherAnimationMap: Record<string, string> = {
   Sunny: "animate-float",
   Rain: "animate-bounce-soft",
@@ -29,7 +32,7 @@ const weatherAnimationMap: Record<string, string> = {
   Snow: "animate-float",
   Frost: "animate-float",
   Night: "animate-float",
-  "Bloodmoon": "animate-wiggle",
+  Bloodmoon: "animate-wiggle",
   "Meteor Shower": "animate-flash",
   Bee: "animate-bounce-soft",
 };
@@ -37,26 +40,32 @@ const weatherAnimationMap: Record<string, string> = {
 export const WeatherCard = () => {
   const [weatherData, setWeatherData] = useState<WeatherEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
     let isMounted = true;
+
     const getWeather = async () => {
       const res = await fetchWeather();
       if (isMounted && res.success) {
         setWeatherData(res.weather);
+        setLoading(false);
       }
     };
+
     getWeather();
-    setLoading(false);
-    // Poll every 10 seconds
-    const interval = setInterval(getWeather, 10000);
+
+    const fetchInterval = setInterval(getWeather, 10000);
+    const timeInterval = setInterval(() => setNow(Date.now()), 1000);
+
     return () => {
       isMounted = false;
-      clearInterval(interval);
+      clearInterval(fetchInterval);
+      clearInterval(timeInterval);
     };
   }, []);
 
-  const activeWeather = weatherData.filter(w => w.active);
+  const activeWeather = weatherData.filter((w) => w.active);
 
   return (
     <div className="bg-gradient-to-br from-green-100 via-lime-50 to-green-200 p-6 rounded-2xl shadow-lg border border-green-200">
@@ -69,26 +78,32 @@ export const WeatherCard = () => {
       {loading ? (
         <p className="text-gray-500">Loading weather data...</p>
       ) : activeWeather.length === 0 ? (
-        <p className="text-gray-700 italic">No Active Weather </p>
+        <p className="text-gray-700 italic">No Active Weather</p>
       ) : (
         <ul className="list-none pl-0 space-y-2">
-          {activeWeather.map(event => {
-            const IconComponent = weatherIconMap[event.weather_name]
-              ? (WiIcons[weatherIconMap[event.weather_name]] as React.ComponentType<{ className?: string }>)
-              : undefined;
-
+          {activeWeather.map((event) => {
+            const iconEntry = weatherIconMap[event.weather_name];
+            const IconComponent =
+              typeof iconEntry === "string" && iconEntry in WiIcons
+                ? (WiIcons[iconEntry as keyof typeof WiIcons] as React.ComponentType<{ className?: string }>)
+                : undefined;
+            const inlineEmoji = typeof iconEntry === "string" && !(iconEntry in WiIcons) ? iconEntry : null;
             const animationClass = weatherAnimationMap[event.weather_name] || "";
+
+            const durationLeft = Math.max(0, Math.floor(event.end_duration_unix - now / 1000));
 
             return (
               <li key={event.weather_id} className="flex items-center gap-2">
                 {IconComponent ? (
                   <IconComponent className={`inline text-2xl ${animationClass}`} />
+                ) : inlineEmoji ? (
+                  <span className={`inline text-2xl ${animationClass}`}>{inlineEmoji}</span>
                 ) : (
                   <span className={`inline text-2xl ${animationClass}`}>🌤️</span>
                 )}
                 <span className="font-semibold">{event.weather_name}</span>
                 <span className="text-xs text-green-700 ml-2">
-                  ({formatDuration(event.duration)} left)
+                  ({formatDuration(durationLeft)} left)
                 </span>
               </li>
             );
@@ -99,7 +114,6 @@ export const WeatherCard = () => {
   );
 };
 
-// Helper to format duration in seconds to mm:ss or hh:mm:ss
 function formatDuration(seconds: number): string {
   if (seconds < 60) return `${seconds}s`;
   const m = Math.floor(seconds / 60);

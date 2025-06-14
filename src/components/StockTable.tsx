@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { fetchStock, fetchRestockTime } from "../services/services";
 import {
   GiFruitBowl,
@@ -46,46 +46,54 @@ export const StockTable = () => {
   const [restockTimes, setRestockTimes] = useState<RestockTimes | null>(null);
   const [now, setNow] = useState(Date.now());
 
-  const fetchAll = async () => {
+  const stockRef = useRef<StockData | null>(null);
+  const restockRef = useRef<RestockTimes | null>(null);
+
+ const fetchAll = async () => {
+  try {
     const [stockData, restockData] = await Promise.all([
       fetchStock(),
       fetchRestockTime(),
     ]);
     setStock(stockData);
     setRestockTimes(restockData);
-  };
+    stockRef.current = stockData;
+    restockRef.current = restockData;
+  } catch (error) {
+    console.error("Error fetching stock or restock data:", error);
+  }
+};
 
-  useEffect(() => {
-    fetchAll();
-  }, []);
-
-  useEffect(() => {
-    const nowInterval = setInterval(() => setNow(Date.now()), 1000);
-    let lastStock: StockData | null = null;
-    let lastRestock: RestockTimes | null = null;
-    // Poll both stock and restock times every 1 second for near-instant updates
-    const pollInterval = setInterval(async () => {
+useEffect(() => {
+  const nowInterval = setInterval(() => setNow(Date.now()), 1000);
+  const pollInterval = setInterval(async () => {
+    try {
       const [newStock, newRestock] = await Promise.all([
         fetchStock(),
         fetchRestockTime(),
       ]);
-      // Only update state if data has changed to avoid unnecessary re-renders
-      if (JSON.stringify(newStock) !== JSON.stringify(lastStock)) {
+
+      if (JSON.stringify(newStock) !== JSON.stringify(stockRef.current)) {
         setStock(newStock);
-        lastStock = newStock;
-        console.log("Stock updated at", new Date().toLocaleTimeString());
+        stockRef.current = newStock;
       }
-      if (JSON.stringify(newRestock) !== JSON.stringify(lastRestock)) {
+      if (JSON.stringify(newRestock) !== JSON.stringify(restockRef.current)) {
         setRestockTimes(newRestock);
-        lastRestock = newRestock;
-        console.log("Restock times updated at", new Date().toLocaleTimeString());
+        restockRef.current = newRestock;
       }
-    }, 1000);
-    return () => {
-      clearInterval(nowInterval);
-      clearInterval(pollInterval);
-    };
-  }, []);
+
+      console.log("Stock and restock data refreshed at", new Date().toLocaleTimeString());
+    } catch (error) {
+      console.error("Polling error:", error);
+    }
+  }, 3000);
+
+  return () => {
+    clearInterval(nowInterval);
+    clearInterval(pollInterval);
+  };
+}, []);
+
 
   const getCountdown = (timestamp?: number) => {
     if (!timestamp) return "--:--:--";
