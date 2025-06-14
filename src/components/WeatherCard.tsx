@@ -11,7 +11,6 @@ interface WeatherEvent {
   end_duration_unix: number;
 }
 
-// Updated: Only valid WiIcons or emoji
 const weatherIconMap: Record<string, keyof typeof WiIcons | string> = {
   Sunny: "WiDaySunny",
   Rain: "WiRain",
@@ -20,9 +19,9 @@ const weatherIconMap: Record<string, keyof typeof WiIcons | string> = {
   Snow: "WiSnow",
   Frost: "WiSnowflakeCold",
   Night: "WiNightClear",
-  Bloodmoon: "🌕", // emoji fallback
-  "Meteor Shower": "🌠", // emoji fallback
-  BeeSwarm: "🐝", // emoji fallback
+  Bloodmoon: "🌕",
+  "Meteor Shower": "🌠",
+  BeeSwarm: "🐝",
 };
 
 const weatherAnimationMap: Record<string, string> = {
@@ -70,10 +69,10 @@ export const WeatherCard = () => {
 
   return (
     <div className="bg-gradient-to-br from-green-100 via-lime-50 to-green-200 p-6 rounded-2xl shadow-lg border border-green-200">
-      <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
+      <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
         <span>🌦️</span> Current Weather Events
       </h2>
-      <p className="text-green-800 mb-3 text-sm">
+      <p className="text-green-800 mb-4 text-sm">
         Weather can affect your garden growth and item spawns!
       </p>
       {loading ? (
@@ -81,7 +80,7 @@ export const WeatherCard = () => {
       ) : activeWeather.length === 0 ? (
         <p className="text-gray-700 italic">No Active Weather</p>
       ) : (
-        <ul className="list-none pl-0 space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {activeWeather.map((event) => {
             const iconEntry = weatherIconMap[event.weather_name];
             const IconComponent =
@@ -90,30 +89,28 @@ export const WeatherCard = () => {
                 : undefined;
             const inlineEmoji = typeof iconEntry === "string" && !(iconEntry in WiIcons) ? iconEntry : null;
             const animationClass = weatherAnimationMap[event.weather_name] || "";
-
             const durationLeft = Math.max(0, Math.floor(event.end_duration_unix - now / 1000));
 
-            if (!IconComponent && !inlineEmoji) {
-              console.warn(`Missing icon for weather: ${event.weather_name}`);
-            }
-
             return (
-              <li key={event.weather_id} className="flex items-center gap-2">
+              <div
+                key={event.weather_id}
+                className="bg-white rounded-xl p-6 shadow-md flex flex-col items-center text-center border border-green-300"
+              >
+                <h3 className="text-lg font-bold mb-2">{event.weather_name}</h3>
                 {IconComponent ? (
-                  <IconComponent className={`inline text-2xl ${animationClass}`} />
+                  <IconComponent className={`text-6xl text-green-700 mb-2 ${animationClass}`} />
                 ) : inlineEmoji ? (
-                  <span className={`inline text-2xl ${animationClass}`}>{inlineEmoji}</span>
+                  <span className={`text-6xl mb-2 ${animationClass}`}>{inlineEmoji}</span>
                 ) : (
-                  <span className={`inline text-2xl ${animationClass}`}>🌤️</span>
+                  <span className="text-6xl mb-2">🌤️</span>
                 )}
-                <span className="font-semibold">{event.weather_name}</span>
-                <span className="text-xs text-green-700 ml-2">
-                  ({formatDuration(durationLeft)} left)
-                </span>
-              </li>
+                <p className="text-sm text-green-700">
+                  {formatDuration(durationLeft)} left
+                </p>
+              </div>
             );
           })}
-        </ul>
+        </div>
       )}
     </div>
   );
