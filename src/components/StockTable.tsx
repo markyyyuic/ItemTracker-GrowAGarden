@@ -65,7 +65,7 @@ export const StockTable = () => {
 };
 
 useEffect(() => {
-  const nowInterval = setInterval(() => setNow(Date.now()), 1000);
+  const nowInterval = setInterval(() => setNow(Date.now()), 10000);
   const pollInterval = setInterval(async () => {
     try {
       const [newStock, newRestock] = await Promise.all([
